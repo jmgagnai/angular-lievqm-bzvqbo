@@ -1,6 +1,6 @@
-import { marked, Tokens } from "marked";
+import { Marked, Renderer, Tokens } from "marked";
 
-class TextRenderer extends marked.Renderer {
+class TextRenderer extends Renderer {
   override heading(token: Tokens.Heading): string {
     const text = this.parser.parseInline(token.tokens);
     if (token.depth === 1) return `${text}\n${"=".repeat(text.length)}\n\n`;
@@ -9,8 +9,7 @@ class TextRenderer extends marked.Renderer {
   }
 
   override paragraph(token: Tokens.Paragraph): string {
-    const text = this.parser.parseInline(token.tokens);
-    return `${text}\n\n`;
+    return `${this.parser.parseInline(token.tokens)}\n\n`;
   }
 
   override blockquote(token: Tokens.Blockquote): string {
@@ -53,13 +52,11 @@ class TextRenderer extends marked.Renderer {
   }
 
   override tablerow(token: Tokens.TableRow): string {
-    const cells = token.cells.map(c => this.tablecell(c)).join("");
-    return `${cells}\n`;
+    return token.cells.map(c => this.tablecell(c)).join("") + "\n";
   }
 
   override tablecell(token: Tokens.TableCell): string {
-    const text = this.parser.parseInline(token.tokens);
-    return `${text}\t`;
+    return `${this.parser.parseInline(token.tokens)}\t`;
   }
 
   override strong(token: Tokens.Strong): string {
@@ -95,15 +92,11 @@ class TextRenderer extends marked.Renderer {
   }
 }
 
-// --- Dedicated Marked instance (isolated) ---
-const textMarked = new marked.Marked({
-  mangle: false,
-  headerIds: false,
+const mdText = new Marked({
   renderer: new TextRenderer()
 });
 
-// --- Public API ---
-export function markdownToText(md: string): string {
-  const output = textMarked.parse(md) as string;
-  return output.replace(/\n{3,}/g, "\n\n").trim() + "\n";
+export function markdownToText(markdown: string): string {
+  const raw = mdText.parse(markdown) as string;
+  return raw.replace(/\n{3,}/g, "\n\n").trim() + "\n";
 }
