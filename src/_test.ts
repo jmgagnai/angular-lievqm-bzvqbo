@@ -1,7 +1,6 @@
-import { Marked, Renderer } from 'marked';
+import { marked } from 'marked';
 
-// --- 1. Dedicated renderer -------------------------------------------
-class TextRenderer extends Renderer {
+class TextRenderer extends marked.Renderer {
   override heading(text: string, level: number): string {
     if (level === 1) return `${text}\n${'='.repeat(text.length)}\n\n`;
     if (level === 2) return `${text}\n${'-'.repeat(text.length)}\n\n`;
@@ -79,14 +78,13 @@ class TextRenderer extends Renderer {
   }
 }
 
-// --- 2. Dedicated Marked instance -------------------------------------
-const textMarked = new Marked({
+// Create isolated instance — no global pollution
+const textMarked = new marked.Marked({
   mangle: false,
   headerIds: false,
   renderer: new TextRenderer()
 });
 
-// --- 3. Exported API ---------------------------------------------------
 export function markdownToText(markdown: string): string {
   const raw = textMarked.parse(markdown) as string;
   return raw.replace(/\n{3,}/g, '\n\n').trim() + '\n';
